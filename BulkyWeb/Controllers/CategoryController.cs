@@ -6,16 +6,16 @@ namespace BulkyWeb.Controllers
 {
     public class CategoryController : Controller
     {
-        private readonly ICategoryRepository _categoryRepository;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public CategoryController(ICategoryRepository DbContext)
+        public CategoryController(IUnitOfWork unitOfWork)
         {
-            _categoryRepository = DbContext;
+            _unitOfWork = unitOfWork;
         }
 
         public IActionResult Index()
         {
-            List<Category> categoryList = _categoryRepository.GetAll().ToList();
+            List<Category> categoryList = _unitOfWork.Category.GetAll().ToList();
 
             return View(categoryList);
         }
@@ -35,8 +35,8 @@ namespace BulkyWeb.Controllers
 
             if (ModelState.IsValid)
             {
-                _categoryRepository.Add(category);
-                _categoryRepository.Save();
+                _unitOfWork.Category.Add(category);
+                _unitOfWork.Save();
                 TempData["success"] = "Category has been created successfully";
 
                 return RedirectToAction("Index");
@@ -55,7 +55,7 @@ namespace BulkyWeb.Controllers
             // Find работает только для Primary Key
             //Category category = _dbContext.Categories.Find(id)!;
 
-            Category category = _categoryRepository.Get(u => u.Id == id);
+            Category category = _unitOfWork.Category.Get(u => u.Id == id);
 
             if (category == null)
             {
@@ -70,8 +70,8 @@ namespace BulkyWeb.Controllers
         {
             if (ModelState.IsValid)
             {
-                _categoryRepository.Update(category);
-                _categoryRepository.Save();
+                _unitOfWork.Category.Update(category);
+                _unitOfWork.Save();
                 TempData["success"] = "Category has been updated successfully";
 
                 return RedirectToAction("Index");
@@ -89,7 +89,7 @@ namespace BulkyWeb.Controllers
 
             // Find работает только для Primary Key
             //Category category = _dbContext.Categories.Find(id)!;
-            Category category = _categoryRepository.Get(u => u.Id == id);
+            Category category = _unitOfWork.Category.Get(u => u.Id == id);
 
             if (category == null)
             {
@@ -102,14 +102,14 @@ namespace BulkyWeb.Controllers
         [HttpPost, ActionName("Delete")]
         public IActionResult DeletePOST(int? id)
         {
-            Category category = _categoryRepository.Get(u => u.Id == id);
+            Category category = _unitOfWork.Category.Get(u => u.Id == id);
             if (category == null)
             {
                 return NotFound();
             }
 
-            _categoryRepository.Remove(category);
-            _categoryRepository.Save();
+            _unitOfWork.Category.Remove(category);
+            _unitOfWork.Save();
             TempData["success"] = "Category has been deleted successfully";
 
             return RedirectToAction("Index");
