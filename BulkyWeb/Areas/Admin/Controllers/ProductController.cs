@@ -1,5 +1,6 @@
 ﻿using Bulky.DataAccess.Repository.IRepository;
 using Bulky.Models;
+using Bulky.Models.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
@@ -24,32 +25,45 @@ namespace BulkyWeb.Areas.Admin.Controllers
 
         public IActionResult Create()
         {
-            IEnumerable<SelectListItem> CategoryList =
-                _unitOfWork.Category.GetAll().Select(x => new SelectListItem
-                {
-                    Text = x.Name,
-                    Value = x.Id.ToString()
-                });
-
+            // ViewBag in Action
             //ViewBag.CategoryList = CategoryList;
-            ViewData["CategoryList"] = CategoryList;
 
-            return View();
+            // ViewData in Action
+            //ViewData["CategoryList"] = CategoryList;
+
+            ProductViewModel productViewModel = new()
+            {
+                Product = new(),
+                CategoryList = _unitOfWork.Category.GetAll().Select(x => new SelectListItem
+                    {
+                        Text = x.Name,
+                        Value = x.Id.ToString()
+                    })
+            };
+
+            return View(productViewModel);
         }
 
         [HttpPost]
-        public IActionResult Create(Product product)
+        public IActionResult Create(ProductViewModel productViewModel)
         {
             if (ModelState.IsValid)
             {
-                _unitOfWork.Product.Add(product);
+                _unitOfWork.Product.Add(productViewModel.Product);
                 _unitOfWork.Save();
                 TempData["success"] = "Product has been created successfully";
 
                 return RedirectToAction("Index");
             }
-
-            return View();
+            else
+            {
+                productViewModel.CategoryList = _unitOfWork.Category.GetAll().Select(x => new SelectListItem
+                {
+                    Text = x.Name,
+                    Value = x.Id.ToString()
+                });
+                return View(productViewModel);
+            }
         }
 
         public IActionResult Edit(int? id)
