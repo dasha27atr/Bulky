@@ -23,7 +23,7 @@ namespace BulkyWeb.Areas.Admin.Controllers
             return View(ProductList);
         }
 
-        public IActionResult Create()
+        public IActionResult Upsert(int? id)
         {
             // ViewBag in Action
             //ViewBag.CategoryList = CategoryList;
@@ -35,17 +35,27 @@ namespace BulkyWeb.Areas.Admin.Controllers
             {
                 Product = new(),
                 CategoryList = _unitOfWork.Category.GetAll().Select(x => new SelectListItem
-                    {
-                        Text = x.Name,
-                        Value = x.Id.ToString()
-                    })
+                {
+                    Text = x.Name,
+                    Value = x.Id.ToString()
+                })
             };
 
-            return View(productViewModel);
+            if (id == null || id == 0)
+            {
+                // create
+                return View(productViewModel);
+            }
+            else
+            {
+                // update
+                productViewModel.Product = _unitOfWork.Product.Get(x => x.Id == id);
+                return View(productViewModel);
+            }            
         }
 
         [HttpPost]
-        public IActionResult Create(ProductViewModel productViewModel)
+        public IActionResult Upsert(ProductViewModel productViewModel, IFormFile? file)
         {
             if (ModelState.IsValid)
             {
@@ -64,38 +74,6 @@ namespace BulkyWeb.Areas.Admin.Controllers
                 });
                 return View(productViewModel);
             }
-        }
-
-        public IActionResult Edit(int? id)
-        {
-            if (id == null || id == 0)
-            {
-                return NotFound();
-            }
-
-            Product product = _unitOfWork.Product.Get(u => u.Id == id);
-
-            if (product == null)
-            {
-                return NotFound();
-            }
-
-            return View(product);
-        }
-
-        [HttpPost]
-        public IActionResult Edit(Product product)
-        {
-            if (ModelState.IsValid)
-            {
-                _unitOfWork.Product.Update(product);
-                _unitOfWork.Save();
-                TempData["success"] = "Product has been updated successfully";
-
-                return RedirectToAction("Index");
-            }
-
-            return View();
         }
 
         public IActionResult Delete(int? id)
